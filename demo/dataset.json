@@ -1,0 +1,299 @@
+{
+  "simulation_date": "2026-10-01",
+  "grade_order": [
+    "Junior",
+    "Middle",
+    "Senior"
+  ],
+  "employees": [
+    {
+      "employee_id": "DEMO_001",
+      "name": "Алия [ДЕМО]",
+      "role": "Backend Engineer",
+      "grade": "Middle",
+      "last_review_date": "2026-09-01",
+      "skills": {
+        "PYTHON": 3,
+        "SYSTEM_DESIGN": 1,
+        "COMMUNICATION": 1
+      },
+      "target": {
+        "role": "Backend Engineer",
+        "grade": "Senior",
+        "source": "employee"
+      }
+    },
+    {
+      "employee_id": "DEMO_002",
+      "name": "Данияр [ДЕМО]",
+      "role": "Backend Engineer",
+      "grade": "Middle",
+      "last_review_date": "2026-09-01",
+      "skills": {
+        "PYTHON": 3,
+        "SYSTEM_DESIGN": 1,
+        "COMMUNICATION": 1
+      },
+      "target": null
+    },
+    {
+      "employee_id": "DEMO_003",
+      "name": "Мария [ДЕМО]",
+      "role": "Backend Engineer",
+      "grade": "Senior",
+      "last_review_date": "2026-09-01",
+      "skills": {
+        "PYTHON": 3,
+        "SYSTEM_DESIGN": 1,
+        "COMMUNICATION": 1
+      },
+      "target": null
+    }
+  ],
+  "goals": [
+    {
+      "role": "Backend Engineer",
+      "grade": "Middle",
+      "requirements": {
+        "PYTHON": 3,
+        "SYSTEM_DESIGN": 2,
+        "COMMUNICATION": 1
+      },
+      "critical_skills": [
+        "PYTHON"
+      ]
+    },
+    {
+      "role": "Backend Engineer",
+      "grade": "Senior",
+      "requirements": {
+        "PYTHON": 4,
+        "SYSTEM_DESIGN": 4,
+        "COMMUNICATION": 2
+      },
+      "critical_skills": [
+        "SYSTEM_DESIGN"
+      ]
+    }
+  ],
+  "events": [
+    {
+      "event_id": "DEMO_DESIGN",
+      "title": "Практикум по архитектуре [ДЕМО]",
+      "category": "technical",
+      "mandatory": false,
+      "repeatable": false,
+      "roles": [
+        "Backend Engineer"
+      ],
+      "grades": [
+        "Junior",
+        "Middle",
+        "Senior"
+      ],
+      "prerequisites": {
+        "PYTHON": 2
+      },
+      "format": "self_paced",
+      "available_session_dates": [],
+      "effects": [
+        {
+          "skill_id": "SYSTEM_DESIGN",
+          "gain": 1,
+          "max_level": 4
+        }
+      ]
+    },
+    {
+      "event_id": "DEMO_PYTHON",
+      "title": "Углублённый Python [ДЕМО]",
+      "category": "technical",
+      "mandatory": false,
+      "repeatable": false,
+      "roles": [
+        "Backend Engineer"
+      ],
+      "grades": [
+        "Junior",
+        "Middle",
+        "Senior"
+      ],
+      "prerequisites": {},
+      "format": "self_paced",
+      "available_session_dates": [],
+      "effects": [
+        {
+          "skill_id": "PYTHON",
+          "gain": 1,
+          "max_level": 4
+        }
+      ]
+    },
+    {
+      "event_id": "DEMO_MENTOR",
+      "title": "Архитектурное менторство [ДЕМО]",
+      "category": "technical",
+      "mandatory": false,
+      "repeatable": true,
+      "roles": [
+        "Backend Engineer"
+      ],
+      "grades": [
+        "Junior",
+        "Middle",
+        "Senior"
+      ],
+      "prerequisites": {},
+      "format": "self_paced",
+      "available_session_dates": [],
+      "effects": [
+        {
+          "skill_id": "SYSTEM_DESIGN",
+          "gain": 1,
+          "max_level": 4
+        }
+      ]
+    },
+    {
+      "event_id": "DEMO_TALK",
+      "title": "Презентация технических решений [ДЕМО]",
+      "category": "communication",
+      "mandatory": false,
+      "repeatable": false,
+      "roles": [
+        "Backend Engineer"
+      ],
+      "grades": [
+        "Junior",
+        "Middle",
+        "Senior"
+      ],
+      "prerequisites": {},
+      "format": "scheduled",
+      "available_session_dates": [
+        "2026-10-08"
+      ],
+      "effects": [
+        {
+          "skill_id": "COMMUNICATION",
+          "gain": 1,
+          "max_level": 4
+        }
+      ]
+    },
+    {
+      "event_id": "DEMO_INTRO",
+      "title": "Введение в архитектуру [ДЕМО]",
+      "category": "technical",
+      "mandatory": false,
+      "repeatable": false,
+      "roles": [
+        "Backend Engineer"
+      ],
+      "grades": [
+        "Junior",
+        "Middle",
+        "Senior"
+      ],
+      "prerequisites": {},
+      "format": "self_paced",
+      "available_session_dates": [],
+      "effects": [
+        {
+          "skill_id": "SYSTEM_DESIGN",
+          "gain": 1,
+          "max_level": 4
+        }
+      ]
+    },
+    {
+      "event_id": "DEMO_REQUIRED",
+      "title": "Обязательный инструктаж [ДЕМО]",
+      "category": "technical",
+      "mandatory": true,
+      "repeatable": false,
+      "roles": [
+        "Backend Engineer"
+      ],
+      "grades": [
+        "Junior",
+        "Middle",
+        "Senior"
+      ],
+      "prerequisites": {},
+      "format": "self_paced",
+      "available_session_dates": [],
+      "effects": [
+        {
+          "skill_id": "COMMUNICATION",
+          "gain": 1,
+          "max_level": 4
+        }
+      ]
+    },
+    {
+      "event_id": "DEMO_EXPIRED",
+      "title": "Прошедший семинар [ДЕМО]",
+      "category": "technical",
+      "mandatory": false,
+      "repeatable": false,
+      "roles": [
+        "Backend Engineer"
+      ],
+      "grades": [
+        "Junior",
+        "Middle",
+        "Senior"
+      ],
+      "prerequisites": {},
+      "format": "scheduled",
+      "available_session_dates": [
+        "2026-09-20"
+      ],
+      "effects": [
+        {
+          "skill_id": "SYSTEM_DESIGN",
+          "gain": 1,
+          "max_level": 4
+        }
+      ]
+    }
+  ],
+  "history": [
+    {
+      "participation_id": "DEMO_H01",
+      "employee_id": "DEMO_001",
+      "event_id": "DEMO_INTRO",
+      "status": "completed",
+      "date": "2026-09-10"
+    },
+    {
+      "participation_id": "DEMO_H02",
+      "employee_id": "DEMO_001",
+      "event_id": "DEMO_TALK",
+      "status": "no_show",
+      "date": "2026-09-12"
+    },
+    {
+      "participation_id": "DEMO_H03",
+      "employee_id": "DEMO_001",
+      "event_id": "DEMO_PYTHON",
+      "status": "declined",
+      "date": "2026-08-10"
+    },
+    {
+      "participation_id": "DEMO_H04",
+      "employee_id": "DEMO_002",
+      "event_id": "DEMO_PYTHON",
+      "status": "in_progress",
+      "date": "2026-09-15"
+    },
+    {
+      "participation_id": "DEMO_H05",
+      "employee_id": "DEMO_002",
+      "event_id": "DEMO_INTRO",
+      "status": "completed",
+      "date": "2026-08-20"
+    }
+  ]
+}

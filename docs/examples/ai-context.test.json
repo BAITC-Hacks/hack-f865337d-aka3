@@ -1,0 +1,88 @@
+{
+  "contract_version": "1.0",
+  "profile": {
+    "employee_id": "TEST_EMPLOYEE",
+    "name": "Тестовый сотрудник (не датасет)",
+    "role": "Test Engineer",
+    "grade": "Middle",
+    "as_of": "2026-10-01",
+    "last_review_date": "2026-09-01",
+    "target": {
+      "role": "Test Engineer",
+      "grade": "Senior",
+      "source": "system"
+    },
+    "target_status": "suggested",
+    "skills": {
+      "TEST_DESIGN": 1.0,
+      "TEST_PYTHON": 5.0
+    },
+    "target_requirements": {
+      "TEST_DESIGN": 4.0,
+      "TEST_PYTHON": 4.0
+    },
+    "gaps": [
+      {
+        "skill_id": "TEST_DESIGN",
+        "current": 1.0,
+        "required": 4.0,
+        "gap": 3.0,
+        "critical": true
+      }
+    ],
+    "critical_skills": [
+      "TEST_DESIGN"
+    ],
+    "progress_percent": 62.5,
+    "completed_event_ids": [],
+    "applied_participation_ids": []
+  },
+  "recommendations": {
+    "employee_id": "TEST_EMPLOYEE",
+    "as_of": "2026-10-01",
+    "items": [
+      {
+        "event_id": "TEST_EVENT",
+        "title": "Тестовый практикум",
+        "facts": {
+          "current_role": "Test Engineer",
+          "current_grade": "Middle",
+          "target": {
+            "role": "Test Engineer",
+            "grade": "Senior",
+            "source": "system"
+          },
+          "addressed_gaps": [
+            {
+              "skill_id": "TEST_DESIGN",
+              "current": 1.0,
+              "required": 4.0,
+              "gap": 3.0,
+              "critical": true
+            }
+          ],
+          "similar_completed": 0,
+          "similar_missed": 0,
+          "weighted_gap_reduction": 2.0,
+          "history_factor": 0.0,
+          "score": 2.0,
+          "eligible_session_date": null
+        },
+        "expected_skill_changes": [
+          {
+            "skill_id": "TEST_DESIGN",
+            "before": 1.0,
+            "after": 2.0,
+            "delta": 1.0
+          }
+        ],
+        "progress_before": 62.5,
+        "progress_after": 75.0,
+        "explanation": "Для перехода из Test Engineer / Middle к Test Engineer / Senior: TEST_DESIGN: 1 → 2, требуется 4. Похожие активности: завершено 0, отказов и пропусков 0. Эффект рассчитан по правилам навыков; повышение не гарантируется.",
+        "explanation_source": "fallback"
+      }
+    ],
+    "empty_reason": null,
+    "message": null
+  }
+}
