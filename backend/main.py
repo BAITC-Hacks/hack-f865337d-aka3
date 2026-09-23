@@ -1,20 +1,26 @@
 import json
 import os
 import secrets
+import time
+import csv
 from pathlib import Path
 from typing import Literal
 
-from fastapi import Depends, FastAPI, HTTPException, Header
+from fastapi import Depends, FastAPI, HTTPException, Header, Request, Response, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, ValidationError
 
 from .engine import profile, recommendations
-from .models import Dataset, Profile, Recommendations, CompletionRequest, CompletionResponse, ImportRequest, GoalRequest
-from .loader import load_dataset
+from .models import Dataset, Profile, Recommendations, CompletionRequest, CompletionResponse, GoalRequest, ChatRequest, ChatResponse, AIContext
+from .loader import load_dataset, adapt_import
 from .storage import Store, CompletionError
+from dotenv import load_dotenv
+
+ROOT = Path(__file__).resolve().parent.parent
+load_dotenv(ROOT / '.env')
 
 
 class Principal(BaseModel):
@@ -34,12 +40,15 @@ class Health(BaseModel):
 
 
 def create_app(dataset: Dataset | None = None, tokens: dict | None = None,
-               db_path: str | None = None, demo: bool = False) -> FastAPI:
+               db_path: str | None = None, demo: bool = False, jury_demo: bool = False, ai_service=None) -> FastAPI:
     if dataset is None and os.getenv('CAREER_QUEST_NORMALIZED_DATA'):
         dataset = load_dataset(os.environ['CAREER_QUEST_NORMALIZED_DATA'])
     store = Store(db_path, dataset) if db_path and dataset is not None else None
     configured_tokens = tokens if tokens is not None else json.loads(os.getenv('CAREER_QUEST_TOKENS', '{}'))
     principals = {key: Principal.model_validate(value) for key, value in configured_tokens.items()}
+    sessions = {}
+    from .ai import AIService
+    ai = ai_service or AIService()
     if any(not key or (p.role == 'employee' and not p.employee_id) for key, p in principals.items()):
         raise ValueError('Each token requires a principal; employee requires employee_id')
     app = FastAPI(title='Career Quest Backend', version='1.2.0',
@@ -49,13 +58,83 @@ def create_app(dataset: Dataset | None = None, tokens: dict | None = None,
                        allow_credentials=False, allow_methods=['GET', 'POST'], allow_headers=['Authorization', 'Content-Type', 'Idempotency-Key'])
     bearer = HTTPBearer(auto_error=False)
 
-    def principal(credentials: HTTPAuthorizationCredentials | None = Depends(bearer)) -> Principal:
+    @app.middleware('http')
+    async def request_limits(request: Request, call_next):
+        if request.method in ('POST', 'PUT', 'PATCH', 'DELETE'):
+            origin = request.headers.get('origin')
+            cookie_auth = bool(request.cookies.get('cq_session')) and not request.headers.get('authorization')
+            if (cookie_auth or request.url.path in ('/auth/demo', '/auth/login', '/auth/logout')) and origin != str(request.base_url).rstrip('/'):
+                return JSONResponse({'detail': {'message': 'Недопустимый Origin. Откройте сайт на том же сервере.'}}, status_code=403)
+            size = 0
+            parts = []
+            async for part in request.stream():
+                size += len(part)
+                if size > 2 * 1024 * 1024:
+                    return JSONResponse({'detail': {'message': 'Запрос больше 2 МБ.'}}, status_code=413)
+                parts.append(part)
+            request._body = b''.join(parts)
+        response = await call_next(request)
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        if not request.url.path.startswith('/assets/'):
+            response.headers['Cache-Control'] = 'no-store'
+        return response
+
+    def principal(request: Request, credentials: HTTPAuthorizationCredentials | None = Depends(bearer)) -> Principal:
         if credentials:
             for token, identity in principals.items():
                 if secrets.compare_digest(credentials.credentials.encode(), token.encode()):
                     return identity
-        raise HTTPException(401, detail={'code': 'unauthorized', 'message': 'Требуется Bearer token.'},
+        elif request.cookies.get('cq_session'):
+            session = sessions.get(request.cookies['cq_session'])
+            if session and session[1] > time.time():
+                return session[0]
+        raise HTTPException(401, detail={'code': 'unauthorized', 'message': 'Требуется вход в Career Quest.'},
                             headers={'WWW-Authenticate': 'Bearer'})
+
+    @app.get('/auth/me')
+    def me(identity: Principal = Depends(principal)):
+        return identity
+
+    @app.get('/auth/config')
+    def auth_config():
+        # Only original synthetic profiles are exposed before login; never imported records.
+        safe = [{'employee_id': e.employee_id, 'name': e.name, 'role': e.role, 'grade': e.grade}
+                for e in dataset.employees] if jury_demo and dataset else []
+        return {'jury_demo': jury_demo, 'employees': safe}
+
+    def issue_session(identity, request, response):
+        now = time.time()
+        for key in list(sessions):
+            if sessions[key][1] <= now:
+                sessions.pop(key, None)
+        if len(sessions) >= 1000:
+            raise HTTPException(429, detail={'message': 'Слишком много сессий. Повторите позже.'})
+        sessions.pop(request.cookies.get('cq_session'), None)
+        sid = secrets.token_urlsafe(32)
+        sessions[sid] = (identity, now + 8 * 3600)
+        response.set_cookie('cq_session', sid, httponly=True, samesite='strict',
+                            secure=request.url.scheme == 'https', max_age=8 * 3600, path='/')
+        return identity
+
+    @app.post('/auth/demo')
+    def demo_login(request: Request, response: Response, body: Principal):
+        if not jury_demo:
+            raise HTTPException(404, detail={'message': 'Режим жюри выключен.'})
+        if body.role == 'employee' and (not dataset or body.employee_id not in {e.employee_id for e in dataset.employees}):
+            raise HTTPException(422, detail={'message': 'Выберите демонстрационного сотрудника.'})
+        if body.role == 'hr':
+            body.employee_id = None
+        return issue_session(body, request, response)
+
+    @app.post('/auth/login')
+    def login(request: Request, response: Response, identity: Principal = Depends(principal)):
+        return issue_session(identity, request, response)
+
+    @app.post('/auth/logout')
+    def logout(request: Request, response: Response):
+        sessions.pop(request.cookies.get('cq_session'), None)
+        response.delete_cookie('cq_session', path='/')
+        return {'status': 'ok'}
 
     def authorized_data(employee_id: str, identity: Principal = Depends(principal)) -> Dataset:
         if identity.role != 'hr' and identity.employee_id != employee_id:
@@ -70,7 +149,7 @@ def create_app(dataset: Dataset | None = None, tokens: dict | None = None,
     @app.get('/health', response_model=Health)
     def health():
         current = store.snapshot() if store else dataset
-        return Health(data_source='synthetic_demo' if demo else 'normalized' if dataset else 'unavailable',
+        return Health(data_source='organizer_synthetic' if dataset and dataset.skill_catalog else 'synthetic_demo' if demo else 'normalized' if dataset else 'unavailable',
                       demo=demo, status='ok' if dataset is not None else 'degraded', dataset_loaded=dataset is not None,
                       employees_count=len(current.employees) if current else 0,
                       simulation_date=str(dataset.simulation_date) if dataset else None,
@@ -85,8 +164,17 @@ def create_app(dataset: Dataset | None = None, tokens: dict | None = None,
         return profile(data, employee_id)
 
     @app.get('/employees/{employee_id}/recommendations', response_model=Recommendations, responses=errors)
-    def employee_recommendations(employee_id: str, data: Dataset = Depends(authorized_data)):
-        return recommendations(data, profile(data, employee_id))
+    async def employee_recommendations(employee_id: str, data: Dataset = Depends(authorized_data)):
+        p = profile(data, employee_id)
+        return await ai.explain(AIContext(profile=p, recommendations=recommendations(data, p)))
+
+    @app.post('/employees/{employee_id}/chat', response_model=ChatResponse)
+    async def chat(employee_id: str, body: ChatRequest, data: Dataset = Depends(authorized_data)):
+        p = profile(data, employee_id)
+        r = recommendations(data, p)
+        if body.event_id and body.event_id not in {i.event_id for i in r.items}:
+            raise HTTPException(422, detail={'message': 'Выберите активность из актуальных рекомендаций.'})
+        return await ai.chat(AIContext(profile=p, recommendations=r), body)
 
     @app.post('/employees/{employee_id}/activities/{event_id}/complete',
               response_model=CompletionResponse,
@@ -115,7 +203,7 @@ def create_app(dataset: Dataset | None = None, tokens: dict | None = None,
             p = profile(data, employee.employee_id)
             r = recommendations(data, p)
             for gap in p.gaps:
-                row = deficits.setdefault(gap.skill_id, {'skill_id': gap.skill_id, 'employees_count': 0, 'critical_count': 0})
+                row = deficits.setdefault(gap.skill_id, {'skill_id': gap.skill_id, 'name': p.skill_names.get(gap.skill_id, gap.skill_id), 'employees_count': 0, 'critical_count': 0})
                 row['employees_count'] += 1
                 row['critical_count'] += int(gap.critical)
             if not r.items:
@@ -124,20 +212,30 @@ def create_app(dataset: Dataset | None = None, tokens: dict | None = None,
                                   'completed': sum(h.status == 'completed' for h in p.history),
                                   'in_progress': sum(h.status == 'in_progress' for h in p.history),
                                   'missed': sum(h.status in ('declined', 'dropped', 'no_show') for h in p.history)})
-        return {'as_of': data.simulation_date, 'employees_count': len(data.employees),
+        by_event = []
+        for event in data.events:
+            rows = [h for h in data.history if h.event_id == event.event_id and h.date <= data.simulation_date]
+            by_event.append({'event_id': event.event_id, 'title': event.title,
+                             'completed': sum(h.status == 'completed' for h in rows),
+                             'in_progress': sum(h.status == 'in_progress' for h in rows),
+                             'missed': sum(h.status in ('declined', 'dropped', 'no_show') for h in rows),
+                             'overdue': sum(h.status == 'overdue' for h in rows)})
+        return {'as_of': data.simulation_date, 'employees_count': len(data.employees), 'event_participation': by_event,
                 'skill_deficits': sorted(deficits.values(), key=lambda x: (-x['employees_count'], x['skill_id'])),
                 'without_next_step': missing, 'participation': participation}
 
     @app.post('/imports')
-    def import_profiles(body: ImportRequest, data: Dataset = Depends(hr_data)):
+    def import_profiles(body: dict = Body(...), data: Dataset = Depends(hr_data)):
         if store is None:
             raise HTTPException(503, detail={'message': 'Хранилище не настроено.'})
         try:
-            return store.import_profiles(body)
+            return store.import_profiles(adapt_import(body))
         except CompletionError as error:
             raise HTTPException(error.status, detail={'code': error.code, 'message': error.message}) from error
         except ValidationError as error:
             raise HTTPException(422, detail={'code': 'invalid_import', 'message': 'Импорт отклонён: ' + '; '.join(e['msg'] for e in error.errors())}) from error
+        except (ValueError, KeyError, TypeError, csv.Error) as error:
+            raise HTTPException(422, detail={'code': 'invalid_import', 'message': 'Некорректный формат импорта: проверьте поля JSON и CSV.'}) from error
 
     @app.post('/employees/{employee_id}/goal', response_model=Profile)
     def set_goal(employee_id: str, body: GoalRequest, data: Dataset = Depends(authorized_data)):
@@ -160,12 +258,10 @@ def create_app(dataset: Dataset | None = None, tokens: dict | None = None,
 
 def configured_app():
     normalized_path = os.getenv('CAREER_QUEST_NORMALIZED_DATA')
-    demo = normalized_path is None
-    dataset = load_dataset(normalized_path) if normalized_path else load_dataset()
-    demo_tokens = {f'demo-employee-{n}': {'role': 'employee', 'employee_id': f'DEMO_00{n}'} for n in range(1, 4)}
-    demo_tokens['demo-hr'] = {'role': 'hr'}
-    tokens = json.loads(os.environ['CAREER_QUEST_TOKENS']) if 'CAREER_QUEST_TOKENS' in os.environ else demo_tokens if demo else {}
-    return create_app(dataset, tokens, os.getenv('CAREER_QUEST_DB', 'data/demo.sqlite3' if demo else 'data/career.sqlite3'), demo)
+    dataset = load_dataset(normalized_path or ROOT / 'data' / 'organizer')
+    tokens = json.loads(os.getenv('CAREER_QUEST_TOKENS', '{}'))
+    return create_app(dataset, tokens, os.getenv('CAREER_QUEST_DB') or str(ROOT / 'data' / 'organizer.sqlite3'),
+                      jury_demo=os.getenv('CAREER_QUEST_JURY_DEMO', '').lower() == 'true')
 
 
 app = configured_app()

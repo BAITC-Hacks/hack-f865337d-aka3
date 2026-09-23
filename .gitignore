@@ -34,6 +34,9 @@ secrets/
 *.db-*
 data/*
 !data/.gitkeep
+!data/organizer/
+!data/organizer/*.json
+!data/organizer/*.csv
 
 # Temporary files, logs and local tools
 *.log
@@ -54,3 +57,14 @@ build/
 dist/
 *.egg-info/
 node_modules/
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+node_modules/
+__pycache__/
+*.db
+*.db-*
+*.sqlite3
+*.sqlite3-*

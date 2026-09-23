@@ -33,7 +33,10 @@ def test_import_atomic_authorized_and_visible_after_restart(tmp_path):
     assert client.get('/hr/overview', headers=HR).json()['employees_count'] == 4
     assert client.get('/employees/IMPORTED_001', headers=EMP).status_code == 403
     assert client_at(tmp_path).get('/employees/IMPORTED_001', headers=HR).json() == imported
-    assert client.post('/imports', json=body, headers=HR).status_code == 422
+    replay = client.post('/imports', json=body, headers=HR)
+    assert replay.status_code == 200
+    assert replay.json()['employees_imported'] == replay.json()['history_imported'] == 0
+    assert client.get('/employees/IMPORTED_001', headers=HR).json() == imported
     assert client.get('/health').json()['employees_count'] == 4
     body['employees'][0]['employee_id'] = 'INVALID_NEW'
     body['history'][0]['employee_id'] = 'INVALID_NEW'

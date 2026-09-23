@@ -51,6 +51,7 @@ def profile(data: Dataset, employee_id: str) -> Profile:
                    history=[dict(**h.model_dump(), title=events[h.event_id].title,
                                  repeatable=events[h.event_id].repeatable) for h in history],
                    available_goals=data.goals,
+                   skill_names={s.skill_id: s.name for s in data.skill_catalog},
                    completion_available=employee.last_review_date < data.simulation_date,
                    completion_message=None if employee.last_review_date < data.simulation_date else
                    'Демовыполнение недоступно: дата симуляции должна быть позже последней оценки.')
@@ -68,7 +69,7 @@ def eligible(data: Dataset, p: Profile, event: Event, allow_started: bool = Fals
         return False
     if any(p.skills.get(k, 0) < v for k, v in event.prerequisites.items()):
         return False
-    return event.format == 'self_paced' or any(d >= data.simulation_date for d in event.available_session_dates)
+    return allow_started or event.format == 'self_paced' or any(d >= data.simulation_date for d in event.available_session_dates)
 
 
 def recommendations(data: Dataset, p: Profile) -> Recommendations:
@@ -91,7 +92,8 @@ def recommendations(data: Dataset, p: Profile) -> Recommendations:
         reduction = sum((2 if g.critical else 1) * min(g.gap, after[g.skill_id]-g.current) for g in addressed)
         if reduction <= 0:
             continue
-        similar = [h for h in history if events[h.event_id].category == event.category]
+        developed = {effect.skill_id for effect in event.effects}
+        similar = [h for h in history if developed & {e.skill_id for e in events[h.event_id].effects}]
         completed = sum(h.status == 'completed' for h in similar)
         missed = sum(h.status in ('declined', 'dropped', 'no_show') for h in similar)
         history_factor = 0.1 * (completed-missed) / max(1, completed+missed)
@@ -102,12 +104,13 @@ def recommendations(data: Dataset, p: Profile) -> Recommendations:
                       eligible_session_date=sessions[0] if event.format != 'self_paced' else None)
         changes = [SkillChange(skill_id=k, before=p.skills.get(k, 0), after=v, delta=v-p.skills.get(k, 0))
                    for k, v in sorted(after.items()) if v > p.skills.get(k, 0)]
-        detail = '; '.join(f'{g.skill_id}: {g.current:g} → {after[g.skill_id]:g}, требуется {g.required:g}' for g in addressed)
+        detail = '; '.join(f'{p.skill_names.get(g.skill_id, g.skill_id)}: {g.current:g} → {after[g.skill_id]:g}, требуется {g.required:g}' for g in addressed)
         explanation = (f'Для перехода из {p.role} / {p.grade} к {p.target.role} / {p.target.grade}: {detail}. '
                        f'Похожие активности: завершено {completed}, отказов и пропусков {missed}. '
                        'Эффект рассчитан по правилам навыков; повышение не гарантируется.')
         items.append(Recommendation(event_id=event.event_id, title=event.title, facts=facts,
                     repeatable=event.repeatable, format=event.format,
+                    description=event.description, duration_hours=event.duration_hours, original_format=event.original_format,
                     expected_skill_changes=changes, progress_before=p.progress_percent,
                     progress_after=progress(after, p.target_requirements),
                     explanation=explanation, explanation_source='fallback'))
