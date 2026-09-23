@@ -1,0 +1,18 @@
+{
+  "employees": [{
+    "employee_id": "IMPORTED_001",
+    "name": "[ДЕМО] Новый сотрудник",
+    "role": "Backend Engineer",
+    "grade": "Middle",
+    "last_review_date": "2026-09-01",
+    "skills": {"PYTHON": 2, "SYSTEM_DESIGN": 1},
+    "target": null
+  }],
+  "history": [{
+    "participation_id": "IMPORTED_HISTORY_001",
+    "employee_id": "IMPORTED_001",
+    "event_id": "DEMO_DESIGN",
+    "status": "completed",
+    "date": "2026-09-15"
+  }]
+}

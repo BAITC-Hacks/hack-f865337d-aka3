@@ -126,6 +126,10 @@ class Profile(Model):
     progress_percent: float | None
     completed_event_ids: list[str]
     applied_participation_ids: list[str]
+    history: list['HistoryItem'] = Field(default_factory=list)
+    available_goals: list[GoalDefinition] = Field(default_factory=list)
+    completion_available: bool = True
+    completion_message: str | None = None
 
 
 class SkillChange(Model):
@@ -151,6 +155,8 @@ class Facts(Model):
 class Recommendation(Model):
     event_id: str
     title: str
+    repeatable: bool = False
+    format: Literal['self_paced', 'scheduled'] = 'self_paced'
     facts: Facts
     expected_skill_changes: list[SkillChange]
     progress_before: float
@@ -192,3 +198,21 @@ class CompletionResponse(Model):
     participation_id: str
     profile: Profile
     recommendations: Recommendations
+
+
+class HistoryItem(Participation):
+    title: str
+    repeatable: bool
+
+
+class ImportRequest(Model):
+    employees: list[Employee] = Field(min_length=1, max_length=1000)
+    history: list[Participation] = Field(default_factory=list, max_length=10000)
+
+
+class GoalRequest(Model):
+    role: str
+    grade: str
+
+
+Profile.model_rebuild()

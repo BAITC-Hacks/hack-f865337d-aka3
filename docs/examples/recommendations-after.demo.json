@@ -5,6 +5,8 @@
     {
       "event_id": "DEMO_MENTOR",
       "title": "Архитектурное менторство [ДЕМО]",
+      "repeatable": true,
+      "format": "self_paced",
       "facts": {
         "current_role": "Backend Engineer",
         "current_grade": "Middle",
@@ -45,6 +47,8 @@
     {
       "event_id": "DEMO_PYTHON",
       "title": "Углублённый Python [ДЕМО]",
+      "repeatable": false,
+      "format": "self_paced",
       "facts": {
         "current_role": "Backend Engineer",
         "current_grade": "Middle",
@@ -85,6 +89,8 @@
     {
       "event_id": "DEMO_TALK",
       "title": "Презентация технических решений [ДЕМО]",
+      "repeatable": false,
+      "format": "scheduled",
       "facts": {
         "current_role": "Backend Engineer",
         "current_grade": "Middle",

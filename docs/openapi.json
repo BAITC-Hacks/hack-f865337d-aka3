@@ -3,7 +3,7 @@
   "info": {
     "title": "Career Quest Backend",
     "description": "Демонстрационный backend; данные организаторов не подключены.",
-    "version": "1.1.0"
+    "version": "1.2.0"
   },
   "paths": {
     "/health": {
@@ -225,6 +225,122 @@
           }
         }
       }
+    },
+    "/hr/overview": {
+      "get": {
+        "summary": "Overview",
+        "operationId": "overview_hr_overview_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/imports": {
+      "post": {
+        "summary": "Import Profiles",
+        "operationId": "import_profiles_imports_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/employees/{employee_id}/goal": {
+      "post": {
+        "summary": "Set Goal",
+        "operationId": "set_goal_employees__employee_id__goal_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "employee_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Employee Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoalRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -280,6 +396,61 @@
           "recommendations"
         ],
         "title": "CompletionResponse"
+      },
+      "Employee": {
+        "properties": {
+          "employee_id": {
+            "type": "string",
+            "title": "Employee Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "grade": {
+            "type": "string",
+            "title": "Grade"
+          },
+          "last_review_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Last Review Date"
+          },
+          "skills": {
+            "additionalProperties": {
+              "type": "number",
+              "maximum": 5.0,
+              "minimum": 0.0
+            },
+            "type": "object",
+            "title": "Skills"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Target"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "employee_id",
+          "name",
+          "role",
+          "grade",
+          "last_review_date",
+          "skills"
+        ],
+        "title": "Employee"
       },
       "Facts": {
         "properties": {
@@ -350,6 +521,61 @@
         ],
         "title": "Facts"
       },
+      "GoalDefinition": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "grade": {
+            "type": "string",
+            "title": "Grade"
+          },
+          "requirements": {
+            "additionalProperties": {
+              "type": "number",
+              "maximum": 5.0,
+              "minimum": 0.0
+            },
+            "type": "object",
+            "title": "Requirements"
+          },
+          "critical_skills": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Critical Skills"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "role",
+          "grade",
+          "requirements"
+        ],
+        "title": "GoalDefinition"
+      },
+      "GoalRequest": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "grade": {
+            "type": "string",
+            "title": "Grade"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "role",
+          "grade"
+        ],
+        "title": "GoalRequest"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -376,7 +602,7 @@
           "api_version": {
             "type": "string",
             "title": "Api Version",
-            "default": "1.1"
+            "default": "1.2"
           },
           "data_source": {
             "type": "string",
@@ -428,6 +654,127 @@
           "message"
         ],
         "title": "Health"
+      },
+      "HistoryItem": {
+        "properties": {
+          "participation_id": {
+            "type": "string",
+            "title": "Participation Id"
+          },
+          "employee_id": {
+            "type": "string",
+            "title": "Employee Id"
+          },
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "completed",
+              "declined",
+              "dropped",
+              "no_show",
+              "in_progress"
+            ],
+            "title": "Status"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "repeatable": {
+            "type": "boolean",
+            "title": "Repeatable"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "participation_id",
+          "employee_id",
+          "event_id",
+          "status",
+          "date",
+          "title",
+          "repeatable"
+        ],
+        "title": "HistoryItem"
+      },
+      "ImportRequest": {
+        "properties": {
+          "employees": {
+            "items": {
+              "$ref": "#/components/schemas/Employee"
+            },
+            "type": "array",
+            "maxItems": 1000,
+            "minItems": 1,
+            "title": "Employees"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/Participation"
+            },
+            "type": "array",
+            "maxItems": 10000,
+            "title": "History"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "employees"
+        ],
+        "title": "ImportRequest"
+      },
+      "Participation": {
+        "properties": {
+          "participation_id": {
+            "type": "string",
+            "title": "Participation Id"
+          },
+          "employee_id": {
+            "type": "string",
+            "title": "Employee Id"
+          },
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "completed",
+              "declined",
+              "dropped",
+              "no_show",
+              "in_progress"
+            ],
+            "title": "Status"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "participation_id",
+          "employee_id",
+          "event_id",
+          "status",
+          "date"
+        ],
+        "title": "Participation"
       },
       "Profile": {
         "properties": {
@@ -532,6 +879,36 @@
             },
             "type": "array",
             "title": "Applied Participation Ids"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/HistoryItem"
+            },
+            "type": "array",
+            "title": "History"
+          },
+          "available_goals": {
+            "items": {
+              "$ref": "#/components/schemas/GoalDefinition"
+            },
+            "type": "array",
+            "title": "Available Goals"
+          },
+          "completion_available": {
+            "type": "boolean",
+            "title": "Completion Available",
+            "default": true
+          },
+          "completion_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completion Message"
           }
         },
         "additionalProperties": false,
@@ -564,6 +941,20 @@
           "title": {
             "type": "string",
             "title": "Title"
+          },
+          "repeatable": {
+            "type": "boolean",
+            "title": "Repeatable",
+            "default": false
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "self_paced",
+              "scheduled"
+            ],
+            "title": "Format",
+            "default": "self_paced"
           },
           "facts": {
             "$ref": "#/components/schemas/Facts"

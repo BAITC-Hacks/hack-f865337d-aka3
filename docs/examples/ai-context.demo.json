@@ -55,7 +55,64 @@
     ],
     "applied_participation_ids": [
       "DEMO_H01"
-    ]
+    ],
+    "history": [
+      {
+        "participation_id": "DEMO_H03",
+        "employee_id": "DEMO_001",
+        "event_id": "DEMO_PYTHON",
+        "status": "declined",
+        "date": "2026-08-10",
+        "title": "Углублённый Python [ДЕМО]",
+        "repeatable": false
+      },
+      {
+        "participation_id": "DEMO_H01",
+        "employee_id": "DEMO_001",
+        "event_id": "DEMO_INTRO",
+        "status": "completed",
+        "date": "2026-09-10",
+        "title": "Введение в архитектуру [ДЕМО]",
+        "repeatable": false
+      },
+      {
+        "participation_id": "DEMO_H02",
+        "employee_id": "DEMO_001",
+        "event_id": "DEMO_TALK",
+        "status": "no_show",
+        "date": "2026-09-12",
+        "title": "Презентация технических решений [ДЕМО]",
+        "repeatable": false
+      }
+    ],
+    "available_goals": [
+      {
+        "role": "Backend Engineer",
+        "grade": "Middle",
+        "requirements": {
+          "PYTHON": 3.0,
+          "SYSTEM_DESIGN": 2.0,
+          "COMMUNICATION": 1.0
+        },
+        "critical_skills": [
+          "PYTHON"
+        ]
+      },
+      {
+        "role": "Backend Engineer",
+        "grade": "Senior",
+        "requirements": {
+          "PYTHON": 4.0,
+          "SYSTEM_DESIGN": 4.0,
+          "COMMUNICATION": 2.0
+        },
+        "critical_skills": [
+          "SYSTEM_DESIGN"
+        ]
+      }
+    ],
+    "completion_available": true,
+    "completion_message": null
   },
   "recommendations": {
     "employee_id": "DEMO_001",
@@ -64,6 +121,8 @@
       {
         "event_id": "DEMO_DESIGN",
         "title": "Практикум по архитектуре [ДЕМО]",
+        "repeatable": false,
+        "format": "self_paced",
         "facts": {
           "current_role": "Backend Engineer",
           "current_grade": "Middle",
@@ -104,6 +163,8 @@
       {
         "event_id": "DEMO_MENTOR",
         "title": "Архитектурное менторство [ДЕМО]",
+        "repeatable": true,
+        "format": "self_paced",
         "facts": {
           "current_role": "Backend Engineer",
           "current_grade": "Middle",
@@ -144,6 +205,8 @@
       {
         "event_id": "DEMO_PYTHON",
         "title": "Углублённый Python [ДЕМО]",
+        "repeatable": false,
+        "format": "self_paced",
         "facts": {
           "current_role": "Backend Engineer",
           "current_grade": "Middle",

@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="ru">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Career Quest — развитие карьеры</title><link rel="stylesheet" href="/assets/styles.css"></head>
+<body>
+<header><a class="brand" href="/">CQ <span>Career Quest</span></a><span class="tag">Карьера начинается со следующего шага</span></header>
+<main>
+<div class="intro"><div><p class="eyebrow">ВАШЕ ПРОФЕССИОНАЛЬНОЕ РАЗВИТИЕ</p><h1>От цели — к действию</h1><p>Навыки, понятный маршрут и следующий шаг.</p></div><span id="health" class="badge">Проверка сервера…</span></div>
+<details class="connection" open><summary>Подключение и доступ</summary><form id="connect"><label>Адрес backend<input id="base" type="url" placeholder="Текущий сервер"></label><label>Идентификатор сотрудника<input id="employee" value="DEMO_001" required></label><label>Bearer token<input id="token" type="password" autocomplete="off" required placeholder="Введите ключ доступа"></label><button>Подключиться</button><button type="button" class="secondary" id="demo">Открыть демопрофиль</button></form><small>Ключ хранится только в памяти вкладки. Для HR введите свой ключ; доступ проверяет сервер.</small></details>
+<nav aria-label="Разделы"><button id="employee-tab" class="selected">Сотрудник</button><button id="hr-tab">HR</button></nav>
+<div id="notice" role="status" aria-live="polite"></div>
+<section id="employee-view"><div id="profile"><div class="empty">Подключитесь к профилю или откройте демонстрационный набор.</div></div><div id="chat"></div></section>
+<section id="hr-view" hidden><div id="overview"></div><article><h2>Импорт профилей и истории</h2><p>JSON внутреннего формата Career Quest: объект с массивами <code>employees</code> и <code>history</code>. Только новые профили; существующие записи не перезаписываются.</p><p>Формат организаторов ещё не подключён. <a href="/assets/import-example.json" download>Скачать пример JSON</a></p><form id="import-form"><label>Файл JSON (до 2 МБ)<input id="import-file" type="file" accept=".json,application/json" required></label><button id="import-button">Импортировать</button></form><div id="import-result" role="status"></div></article></section>
+<footer>Career Quest · Покрытие навыков помогает планировать развитие и не гарантирует повышение.</footer>
+</main><script type="module" src="/assets/app.js"></script>
+</body></html>
