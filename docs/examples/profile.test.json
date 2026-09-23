@@ -1,0 +1,37 @@
+{
+  "employee_id": "TEST_EMPLOYEE",
+  "name": "Тестовый сотрудник (не датасет)",
+  "role": "Test Engineer",
+  "grade": "Middle",
+  "as_of": "2026-10-01",
+  "last_review_date": "2026-09-01",
+  "target": {
+    "role": "Test Engineer",
+    "grade": "Senior",
+    "source": "system"
+  },
+  "target_status": "suggested",
+  "skills": {
+    "TEST_DESIGN": 1.0,
+    "TEST_PYTHON": 5.0
+  },
+  "target_requirements": {
+    "TEST_DESIGN": 4.0,
+    "TEST_PYTHON": 4.0
+  },
+  "gaps": [
+    {
+      "skill_id": "TEST_DESIGN",
+      "current": 1.0,
+      "required": 4.0,
+      "gap": 3.0,
+      "critical": true
+    }
+  ],
+  "critical_skills": [
+    "TEST_DESIGN"
+  ],
+  "progress_percent": 62.5,
+  "completed_event_ids": [],
+  "applied_participation_ids": []
+}

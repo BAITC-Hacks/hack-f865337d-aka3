@@ -1,0 +1,55 @@
+# Python environments and caches
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+secrets*.json
+secrets/
+.secrets/
+
+# Runtime databases and input data
+*.sqlite
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*
+data/*
+!data/.gitkeep
+
+# Temporary files, logs and local tools
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.DS_Store
+tmp/
+.cache/
+.codex/
+.idea/
+.vscode/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+node_modules/

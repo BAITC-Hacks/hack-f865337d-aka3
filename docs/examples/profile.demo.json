@@ -1,0 +1,57 @@
+{
+  "employee_id": "DEMO_001",
+  "name": "Алия [ДЕМО]",
+  "role": "Backend Engineer",
+  "grade": "Middle",
+  "as_of": "2026-10-01",
+  "last_review_date": "2026-09-01",
+  "target": {
+    "role": "Backend Engineer",
+    "grade": "Senior",
+    "source": "employee"
+  },
+  "target_status": "selected",
+  "skills": {
+    "PYTHON": 3.0,
+    "SYSTEM_DESIGN": 2.0,
+    "COMMUNICATION": 1.0
+  },
+  "target_requirements": {
+    "PYTHON": 4.0,
+    "SYSTEM_DESIGN": 4.0,
+    "COMMUNICATION": 2.0
+  },
+  "gaps": [
+    {
+      "skill_id": "COMMUNICATION",
+      "current": 1.0,
+      "required": 2.0,
+      "gap": 1.0,
+      "critical": false
+    },
+    {
+      "skill_id": "PYTHON",
+      "current": 3.0,
+      "required": 4.0,
+      "gap": 1.0,
+      "critical": false
+    },
+    {
+      "skill_id": "SYSTEM_DESIGN",
+      "current": 2.0,
+      "required": 4.0,
+      "gap": 2.0,
+      "critical": true
+    }
+  ],
+  "critical_skills": [
+    "SYSTEM_DESIGN"
+  ],
+  "progress_percent": 60.0,
+  "completed_event_ids": [
+    "DEMO_INTRO"
+  ],
+  "applied_participation_ids": [
+    "DEMO_H01"
+  ]
+}
