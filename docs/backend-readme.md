@@ -35,10 +35,10 @@ CAREER_QUEST_DB=data/demo-fresh.sqlite3 .venv/bin/python -m uvicorn backend.main
 - CAREER_QUEST_DB: путь SQLite; по умолчанию data/demo.sqlite3.
 - CAREER_QUEST_NORMALIZED_DATA: JSON нашей внутренней схемы Dataset. При настройке демонстрационные токены не включаются. При изменении seed используйте новый файл БД, чтобы не потерять старые выполнения.
 - CAREER_QUEST_TOKENS: JSON `{"<secret>":{"role":"employee","employee_id":"<id>"},"<hr-secret>":{"role":"hr"}}`. В демо по умолчанию demo-employee-1/2/3 для DEMO_001/002/003 и demo-hr для HR. Это учебные ключи, не реальная система входа.
-- CAREER_QUEST_CORS_ORIGINS: origin через запятую; по умолчанию http://localhost:5173,http://localhost:3000. Для команды на других ноутбуках задайте origin frontend и запускайте с --host 0.0.0.0; URL backend будет с IP вашего ноутбука.
+- CAREER_QUEST_CORS_ORIGINS: origin через запятую; по умолчанию localhost и 127.0.0.1 на портах 5173 и 3000. Интерфейс на `/` не требует CORS. Для команды на других ноутбуках задайте origin frontend и запускайте с --host 0.0.0.0; URL backend будет с IP вашего ноутбука. Для crypto.randomUUID при удалённом доступе frontend нужен HTTPS.
 
 Тесты: `.venv/bin/python -m pytest -q`. Проверяются расчёты, ограничения доступа, полный сценарий, повтор после перезапуска, разные ключи, отдельные повторяемые участия, конкурентные запросы и отсутствие записей при GET/ошибках.
 
 Контракты: [API](api-contract.md), [AI](ai-contract.md). [Допущения](data-status.md). Готовые JSON: docs/examples/*.demo.json.
 
-Пока не реализованы: импорт, HR-агрегации, чат, внешняя модель и адаптер формата организаторов. Чужие frontend и AI-модули не изменяются.
+Этап frontend добавил импорт внутреннего JSON, HR-агрегации, историю, сохранение цели и интерфейс на `/`. Подробности и запуск на Windows: [frontend-handoff.md](frontend-handoff.md). Пока не реализованы чат, внешняя модель и адаптер формата организаторов.

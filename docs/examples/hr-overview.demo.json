@@ -1,0 +1,51 @@
+{
+  "as_of": "2026-10-01",
+  "employees_count": 3,
+  "skill_deficits": [
+    {
+      "skill_id": "COMMUNICATION",
+      "employees_count": 2,
+      "critical_count": 0
+    },
+    {
+      "skill_id": "PYTHON",
+      "employees_count": 2,
+      "critical_count": 0
+    },
+    {
+      "skill_id": "SYSTEM_DESIGN",
+      "employees_count": 2,
+      "critical_count": 2
+    }
+  ],
+  "without_next_step": [
+    {
+      "employee_id": "DEMO_003",
+      "name": "Мария [ДЕМО]",
+      "reason": "Выберите карьерную цель."
+    }
+  ],
+  "participation": [
+    {
+      "employee_id": "DEMO_001",
+      "name": "Алия [ДЕМО]",
+      "completed": 2,
+      "in_progress": 0,
+      "missed": 2
+    },
+    {
+      "employee_id": "DEMO_002",
+      "name": "Данияр [ДЕМО]",
+      "completed": 1,
+      "in_progress": 1,
+      "missed": 0
+    },
+    {
+      "employee_id": "DEMO_003",
+      "name": "Мария [ДЕМО]",
+      "completed": 0,
+      "in_progress": 0,
+      "missed": 0
+    }
+  ]
+}

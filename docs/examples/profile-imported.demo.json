@@ -1,6 +1,6 @@
 {
-  "employee_id": "DEMO_001",
-  "name": "Алия [ДЕМО]",
+  "employee_id": "IMPORTED_001",
+  "name": "[ДЕМО] Новый сотрудник",
   "role": "Backend Engineer",
   "grade": "Middle",
   "as_of": "2026-10-01",
@@ -8,13 +8,12 @@
   "target": {
     "role": "Backend Engineer",
     "grade": "Senior",
-    "source": "employee"
+    "source": "system"
   },
-  "target_status": "selected",
+  "target_status": "suggested",
   "skills": {
-    "PYTHON": 3.0,
-    "SYSTEM_DESIGN": 3.0,
-    "COMMUNICATION": 1.0
+    "PYTHON": 2.0,
+    "SYSTEM_DESIGN": 2.0
   },
   "target_requirements": {
     "PYTHON": 4.0,
@@ -24,72 +23,43 @@
   "gaps": [
     {
       "skill_id": "COMMUNICATION",
-      "current": 1.0,
+      "current": 0.0,
       "required": 2.0,
-      "gap": 1.0,
+      "gap": 2.0,
       "critical": false
     },
     {
       "skill_id": "PYTHON",
-      "current": 3.0,
+      "current": 2.0,
       "required": 4.0,
-      "gap": 1.0,
+      "gap": 2.0,
       "critical": false
     },
     {
       "skill_id": "SYSTEM_DESIGN",
-      "current": 3.0,
+      "current": 2.0,
       "required": 4.0,
-      "gap": 1.0,
+      "gap": 2.0,
       "critical": true
     }
   ],
   "critical_skills": [
     "SYSTEM_DESIGN"
   ],
-  "progress_percent": 70.0,
+  "progress_percent": 40.0,
   "completed_event_ids": [
-    "DEMO_DESIGN",
-    "DEMO_INTRO"
+    "DEMO_DESIGN"
   ],
   "applied_participation_ids": [
-    "DEMO_H01",
-    "demo-design-example"
+    "IMPORTED_HISTORY_001"
   ],
   "history": [
     {
-      "participation_id": "DEMO_H03",
-      "employee_id": "DEMO_001",
-      "event_id": "DEMO_PYTHON",
-      "status": "declined",
-      "date": "2026-08-10",
-      "title": "Углублённый Python [ДЕМО]",
-      "repeatable": false
-    },
-    {
-      "participation_id": "DEMO_H01",
-      "employee_id": "DEMO_001",
-      "event_id": "DEMO_INTRO",
-      "status": "completed",
-      "date": "2026-09-10",
-      "title": "Введение в архитектуру [ДЕМО]",
-      "repeatable": false
-    },
-    {
-      "participation_id": "DEMO_H02",
-      "employee_id": "DEMO_001",
-      "event_id": "DEMO_TALK",
-      "status": "no_show",
-      "date": "2026-09-12",
-      "title": "Презентация технических решений [ДЕМО]",
-      "repeatable": false
-    },
-    {
-      "participation_id": "demo-design-example",
-      "employee_id": "DEMO_001",
+      "participation_id": "IMPORTED_HISTORY_001",
+      "employee_id": "IMPORTED_001",
       "event_id": "DEMO_DESIGN",
       "status": "completed",
-      "date": "2026-10-01",
+      "date": "2026-09-15",
       "title": "Практикум по архитектуре [ДЕМО]",
       "repeatable": false
     }

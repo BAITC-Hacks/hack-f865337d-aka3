@@ -47,7 +47,13 @@ def profile(data: Dataset, employee_id: str) -> Profile:
                    target_requirements=requirements, gaps=gaps, critical_skills=critical,
                    progress_percent=progress(skills, requirements) if goal else None,
                    completed_event_ids=sorted({h.event_id for h in history if h.status == 'completed'}),
-                   applied_participation_ids=applied)
+                   applied_participation_ids=applied,
+                   history=[dict(**h.model_dump(), title=events[h.event_id].title,
+                                 repeatable=events[h.event_id].repeatable) for h in history],
+                   available_goals=data.goals,
+                   completion_available=employee.last_review_date < data.simulation_date,
+                   completion_message=None if employee.last_review_date < data.simulation_date else
+                   'Демовыполнение недоступно: дата симуляции должна быть позже последней оценки.')
 
 
 def eligible(data: Dataset, p: Profile, event: Event, allow_started: bool = False) -> bool:
@@ -101,6 +107,7 @@ def recommendations(data: Dataset, p: Profile) -> Recommendations:
                        f'Похожие активности: завершено {completed}, отказов и пропусков {missed}. '
                        'Эффект рассчитан по правилам навыков; повышение не гарантируется.')
         items.append(Recommendation(event_id=event.event_id, title=event.title, facts=facts,
+                    repeatable=event.repeatable, format=event.format,
                     expected_skill_changes=changes, progress_before=p.progress_percent,
                     progress_after=progress(after, p.target_requirements),
                     explanation=explanation, explanation_source='fallback'))
