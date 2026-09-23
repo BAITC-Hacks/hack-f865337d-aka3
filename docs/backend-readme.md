@@ -42,3 +42,5 @@ CAREER_QUEST_DB=data/demo-fresh.sqlite3 .venv/bin/python -m uvicorn backend.main
 Контракты: [API](api-contract.md), [AI](ai-contract.md). [Допущения](data-status.md). Готовые JSON: docs/examples/*.demo.json.
 
 Пока не реализованы: импорт, HR-агрегации, чат, внешняя модель и адаптер формата организаторов. Чужие frontend и AI-модули не изменяются.
+
+Установка на macOS/Windows и передача участникам: [Team handoff](team-handoff.md).
