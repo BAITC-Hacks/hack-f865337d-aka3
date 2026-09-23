@@ -83,7 +83,7 @@ class Store:
                     raise CompletionError('participation_in_progress', 'Завершите уже начатое участие с его participation_id.')
                 if existing and (existing.status != 'in_progress' or existing.date > data.simulation_date):
                     raise CompletionError('participation_conflict', 'Это участие нельзя завершить в деморежиме.')
-                if not eligible(data, p, event, allow_started=True):
+                if not eligible(data, p, event, allow_started=bool(active)):
                     raise CompletionError('activity_unavailable', 'Активность недоступна для этого сотрудника.')
                 employee = next(e for e in data.employees if e.employee_id == employee_id)
                 if employee.last_review_date >= data.simulation_date:
@@ -92,8 +92,9 @@ class Store:
                 pid = participation.participation_id if participation else request.participation_id or ('demo_' + uuid4().hex)
                 if participation:
                     data.history.remove(participation)
-                data.history.append(Participation(participation_id=pid, employee_id=employee_id,
-                                    event_id=event_id, status='completed', date=data.simulation_date))
+                record = participation.model_dump() if participation else dict(participation_id=pid, employee_id=employee_id, event_id=event_id)
+                record.update(status='completed', date=data.simulation_date, completion_pct=100)
+                data.history.append(Participation.model_validate(record))
                 # Full model validation before committing persisted state.
                 data = Dataset.model_validate(data.model_dump())
                 conn.execute('UPDATE snapshot SET body=? WHERE id=1', (data.model_dump_json(),))
@@ -111,15 +112,31 @@ class Store:
             data = self.read(conn)
             # Append only: never overwrite reviews, history or idempotency snapshots.
             candidate = data.model_dump()
-            candidate['employees'] += [e.model_dump() for e in request.employees]
-            candidate['history'] += [h.model_dump() for h in request.history]
-            new_ids = {e.employee_id for e in request.employees}
-            if any(h.employee_id not in new_ids for h in request.history):
-                raise CompletionError('import_conflict', 'История должна относиться к новым профилям.', 422)
+            employees = {e.employee_id: e for e in data.employees}
+            history = {h.participation_id: h for h in data.history}
+            added_employees, added_history = [], []
+            for e in request.employees:
+                if e.employee_id in employees:
+                    if employees[e.employee_id] != e:
+                        raise CompletionError('import_conflict', f'Профиль {e.employee_id} уже существует и отличается. Перезапись запрещена.', 422)
+                    continue
+                employees[e.employee_id] = e
+                added_employees.append(e.model_dump())
+            for h in request.history:
+                if h.date > data.simulation_date:
+                    raise CompletionError('invalid_date', 'Дата истории позже даты симуляции.', 422)
+                if h.participation_id in history:
+                    if history[h.participation_id] != h:
+                        raise CompletionError('import_conflict', f'Запись {h.participation_id} уже существует и отличается.', 422)
+                    continue
+                history[h.participation_id] = h
+                added_history.append(h.model_dump())
+            candidate['employees'] += added_employees
+            candidate['history'] += added_history
             data = Dataset.model_validate(candidate)
             conn.execute('UPDATE snapshot SET body=? WHERE id=1', (data.model_dump_json(),))
-            return {'employee_ids': [e.employee_id for e in request.employees],
-                    'employees_imported': len(request.employees), 'history_imported': len(request.history)}
+            return {'employee_ids': sorted({e.employee_id for e in request.employees} | {h.employee_id for h in request.history}),
+                    'employees_imported': len(added_employees), 'history_imported': len(added_history)}
 
     def set_goal(self, employee_id, request):
         with self.connect() as conn:

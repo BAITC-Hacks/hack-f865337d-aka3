@@ -1,9 +1,10 @@
 """API v1 and internal normalized models; NOT the unverified starter-kit schema."""
 from datetime import date
 from typing import Annotated, Literal
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator, field_validator
 
 Level = Annotated[float, Field(ge=0, le=5)]
+Identifier = Annotated[str, Field(min_length=1, max_length=100, pattern=r'^[A-Za-z0-9_-]+$')]
 
 
 class Model(BaseModel):
@@ -30,13 +31,19 @@ class GoalDefinition(Model):
 
 
 class Employee(Model):
-    employee_id: str
-    name: str
+    employee_id: Identifier
+    name: str = Field(min_length=1, max_length=200)
     role: str
     grade: str
     last_review_date: date
     skills: dict[str, Level]
     target: Target | None = None
+    department: str | None = None
+    manager_id: str | None = None
+    hire_date: date | None = None
+    tenure_months: int | None = Field(default=None, ge=0)
+    work_format: Literal['office', 'hybrid', 'remote'] | None = None
+    preferred_language: Literal['kk', 'ru', 'en'] | None = None
 
 
 class Effect(Model):
@@ -46,7 +53,7 @@ class Effect(Model):
 
 
 class Event(Model):
-    event_id: str
+    event_id: Identifier
     title: str
     category: str
     mandatory: bool
@@ -57,6 +64,9 @@ class Event(Model):
     format: Literal['self_paced', 'scheduled']
     available_session_dates: list[date]
     effects: list[Effect]
+    description: str = ''
+    original_format: str | None = None
+    duration_hours: float | None = Field(default=None, ge=0)
 
     @model_validator(mode='after')
     def unique_effects(self):
@@ -66,11 +76,35 @@ class Event(Model):
 
 
 class Participation(Model):
-    participation_id: str
-    employee_id: str
-    event_id: str
-    status: Literal['completed', 'declined', 'dropped', 'no_show', 'in_progress']
+    participation_id: Identifier
+    employee_id: Identifier
+    event_id: Identifier
+    status: Literal['completed', 'declined', 'dropped', 'no_show', 'in_progress', 'overdue']
     date: date
+    due_date: date | None = None
+    completion_pct: int | None = Field(default=None, ge=0, le=100)
+    score: int | None = Field(default=None, ge=0, le=100)
+    feedback_rating: int | None = Field(default=None, ge=1, le=5)
+    assigned_by: Literal['self', 'manager', 'hr'] | None = None
+
+    @model_validator(mode='after')
+    def status_consistency(self):
+        if self.completion_pct is not None:
+            if self.status == 'completed' and self.completion_pct != 100:
+                raise ValueError('completed requires completion_pct=100')
+            if self.status in ('declined', 'no_show') and self.completion_pct != 0:
+                raise ValueError('declined/no_show requires completion_pct=0')
+            if self.status in ('in_progress', 'overdue', 'dropped') and self.completion_pct > 95:
+                raise ValueError('Uncompleted participation must be at most 95 percent')
+        return self
+
+
+class Skill(Model):
+    skill_id: str
+    name: str
+    type: str
+    category: str
+    description: str
 
 
 class Dataset(Model):
@@ -80,6 +114,7 @@ class Dataset(Model):
     history: list[Participation]
     goals: list[GoalDefinition]
     grade_order: list[str]
+    skill_catalog: list[Skill] = Field(default_factory=list)
 
     @model_validator(mode='after')
     def check_references(self):
@@ -99,6 +134,20 @@ class Dataset(Model):
             raise ValueError('Review date is after simulation date')
         if any(e.target and (e.target.role, e.target.grade) not in goals for e in self.employees):
             raise ValueError('Unknown target requirements')
+        if self.skill_catalog:
+            known = {s.skill_id for s in self.skill_catalog}
+            if len(known) != len(self.skill_catalog):
+                raise ValueError('Duplicate skill_id')
+            refs = [set(e.skills) for e in self.employees] + [set(g.requirements) for g in self.goals]
+            refs += [set(e.prerequisites) | {x.skill_id for x in e.effects} for e in self.events]
+            if any(not keys <= known for keys in refs):
+                raise ValueError('Unknown skill reference')
+            if any((e.role, e.grade) not in goals for e in self.employees):
+                raise ValueError('Unknown employee role/grade')
+            if any(e.manager_id and e.manager_id not in employees for e in self.employees):
+                raise ValueError('Unknown manager_id')
+            if any(e.hire_date and e.hire_date > self.simulation_date for e in self.employees):
+                raise ValueError('Hire date is after simulation date')
         return self
 
 
@@ -130,6 +179,7 @@ class Profile(Model):
     available_goals: list[GoalDefinition] = Field(default_factory=list)
     completion_available: bool = True
     completion_message: str | None = None
+    skill_names: dict[str, str] = Field(default_factory=dict)
 
 
 class SkillChange(Model):
@@ -163,6 +213,9 @@ class Recommendation(Model):
     progress_after: float
     explanation: str
     explanation_source: Literal['ai', 'fallback']
+    description: str = ''
+    duration_hours: float | None = None
+    original_format: str | None = None
 
 
 class Recommendations(Model):
@@ -206,8 +259,38 @@ class HistoryItem(Participation):
 
 
 class ImportRequest(Model):
-    employees: list[Employee] = Field(min_length=1, max_length=1000)
+    employees: list[Employee] = Field(default_factory=list, max_length=1000)
     history: list[Participation] = Field(default_factory=list, max_length=10000)
+
+    @model_validator(mode='after')
+    def not_empty(self):
+        if not self.employees and not self.history:
+            raise ValueError('Импорт пуст: выберите профили или историю.')
+        return self
+
+
+class ChatMessage(Model):
+    role: Literal['user', 'assistant']
+    content: str = Field(min_length=1, max_length=2000)
+
+
+class ChatRequest(Model):
+    message: str = Field(min_length=1, max_length=2000)
+    event_id: str | None = Field(default=None, max_length=100)
+    history: list[ChatMessage] = Field(default_factory=list, max_length=20)
+
+    @field_validator('message', mode='before')
+    @classmethod
+    def trim_message(cls, value):
+        return value.strip() if isinstance(value, str) else value
+
+
+class ChatAnswer(Model):
+    message: str = Field(min_length=1, max_length=1800)
+
+
+class ChatResponse(ChatAnswer):
+    source: Literal['ai', 'fallback']
 
 
 class GoalRequest(Model):

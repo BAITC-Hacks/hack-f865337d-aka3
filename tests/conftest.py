@@ -3,6 +3,13 @@ import pytest
 from backend.models import Dataset
 
 
+@pytest.fixture(autouse=True)
+def no_live_provider_calls(monkeypatch):
+    # Developer .env credentials must never cause network calls from regression tests.
+    monkeypatch.setenv('OPENAI_API_KEY', '')
+    monkeypatch.setenv('NVIDIA_API_KEY', '')
+
+
 @pytest.fixture
 def dataset():
     return Dataset.model_validate({
